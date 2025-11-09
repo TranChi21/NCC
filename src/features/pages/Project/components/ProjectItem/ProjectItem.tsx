@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import type { FC } from 'react';
 import './ProjectItem.scss';
 import { Button, Dropdown, MenuProps, Space, Tag, Tooltip } from 'antd';
@@ -9,19 +9,18 @@ import { format } from 'date-fns';
 import getProjectType from '../../../../../utils/getProjectType';
 import { useAppDispatch } from '../../../../../redux/hooks';
 import { DeleteProject, getAllProject } from '../../../../../redux/ThunkFunction/ThunkFunction';
-import { AppContext } from '../../../../../context/AppContext';
 import FormTabs from '../../Forms/FormTabs/FormTabs';
 import Swal from 'sweetalert2';
 import { activeProject, inActiveProject } from '../../../../../services/services';
 import Noti from '../../../../../Noti/notification';
+import { useAppContext } from '../../../../../hooks/useAppContext';
 interface IProjectItemProps {
   projectItem: ISortProjectState
 }
 
 const ProjectItem: FC<IProjectItemProps> = ({ projectItem }) => {
   const dispatch = useAppDispatch();
-  const { setIsOpen, setModalContent } = useContext(AppContext);
-
+  const { setIsOpen, setModalContent } = useAppContext()
   const onEditModal = useCallback(
     async (modalContent: IModalContent, projectId?: number): Promise<void> => {
       setIsOpen(true);

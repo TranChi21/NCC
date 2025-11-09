@@ -1,10 +1,10 @@
 import * as React from 'react';
 import type { FC } from 'react';
-import { useMemo, useState, useEffect, useContext } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import * as Yup from 'yup';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
-import { ErrorMessage, Field, FieldInputProps, FieldProps, Form, Formik } from 'formik';
+import { ErrorMessage, Field, FieldInputProps, FieldProps, Form, Formik, getIn } from 'formik';
 import { PlusOutlined } from '@ant-design/icons';
 import ATexArea from 'antd/es/input/TextArea';
 import { RangePickerProps } from 'antd/es/date-picker';
@@ -13,7 +13,6 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { Select as ASelect, DatePicker as ADatePicker, Checkbox as ACheckbox } from 'antd';
 
 import './General.scss';
-import { AppContext } from '../../../../../context/AppContext';
 import { ICustomerResponse, IFormValues, IProjectSubmitValue, ISelectOptionState } from '../../../../../interfaces/interface';
 import { EProjectType } from '../../../../../enums/enums';
 import Button from '../../../../../components/Button/Button';
@@ -24,15 +23,17 @@ import Noti from '../../../../../Noti/notification';
 import { deleteUserSelected, selectProjectStore } from '../../../../../redux/slice/ProjectSlice';
 import { CreateProject, getAllProject, getProjectQuantity } from '../../../../../redux/ThunkFunction/ThunkFunction';
 import services from '../../../../../services/services';
+import { useAppContext } from '../../../../../hooks/useAppContext';
 
 const ProjectFormSchema = Yup.object().shape({
-  name: Yup.string().max(256, 'Too Long!').trim().required('Project Name is required!'),
-  code: Yup.string().max(256, 'Too Long!').trim().required('Project Code is required!'),
-  customerId: Yup.number().required('Client is required!'),
-  dates: Yup.string().trim().required('Dates is required!')
+  name: Yup.string().max(256, 'Too Long!').trim().required('Project Name is required'),
+  code: Yup.string().max(256, 'Too Long!').trim().required('Project Code is required'),
+  customerId: Yup.number().required('Client is required'),
+  dates: Yup.string().trim().required('Dates is required')
 });
 
 const dateFormat = 'DD/MM/YYYY';
+
 
 const Ganeral: FC = () => {
   const dispatch = useAppDispatch();
@@ -46,13 +47,17 @@ const Ganeral: FC = () => {
     }
   } = useAppSelector(selectProjectStore);
 
-  const { formRef, setIsOpen } = useContext(AppContext);
+  const { formRef, setIsOpen } = useAppContext()
   const [clientOptions, setClientOptions] = useState<ICustomerResponse[]>([]);
   const [projectTypeId, setProjectTypeId] = useState<EProjectType>(EProjectType.TM);
 
+  // Sửa lỗi ESLint: disabledDate
   const disabledDate: RangePickerProps['disabledDate'] = (current) => {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    return current && current < dayjs().endOf('day');
+    if (!current) {
+      return false;
+    }
+    return current < dayjs().endOf('day');
   };
 
   const projectType: EProjectType[] = [
@@ -166,6 +171,7 @@ const Ganeral: FC = () => {
     void fetchCustomer();
   }, []);
 
+
   return (
     <Formik
       innerRef={formRef}
@@ -174,38 +180,46 @@ const Ganeral: FC = () => {
       onSubmit={onSubmitForm}
     >
       {({ errors, touched, setFieldValue, handleBlur }) => {
+
         return (
           <Form className='create-form'>
             <div className='wrapper-input form-select'>
               <h4 className='input-title'>
-                Client*
+                Client<span className='required'>*</span>
               </h4>
               <Field name='customerId'>
-                {({ field, form: { errors, touched } }: FieldProps) => (
-                  <div className='wrapper-client-input'>
-                    <ASelect
-                      showSearch
-                      size='large'
-                      placeholder='Search to Select'
-                      optionFilterProp='children'
-                      filterOption={(input, option) => (option?.label ?? '').includes(input)}
-                      options={selectOption}
-                      {...field}
-                      onBlur={handleBlur(field.name)}
-                      onChange={(value: number) => {
-                        setFieldValue(field.name, value);
-                      }}
-                      className={clsx(
-                        'input-select',
-                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                        errors[field.name] && touched[field.name] && 'input-select--error'
-                      )} />
-                    <ErrorMessage
-                      component='div'
-                      className='client-message-error'
-                      name={field.name} />
-                  </div>
-                )}
+                {({ field, form }: FieldProps) => {
+                  console.log({ form });
+                  console.log({ field });
+
+                  const errorText = getIn(form.errors, field.name);
+                  const hasTouched = getIn(form.touched, field.name);
+                  const isError: boolean = !!(Boolean(errorText) && Boolean(hasTouched));
+
+                  return (
+                    <div className='wrapper-client-input'>
+                      <ASelect
+                        showSearch
+                        size='large'
+                        placeholder={isError ? (errorText as string) : 'Select a client'}
+                        optionFilterProp='children'
+                        filterOption={(input, option) => (option?.label ?? '').includes(input)}
+                        options={selectOption}
+
+                        {...field}
+                        status={isError ? 'error' : undefined}
+                        onBlur={form.handleBlur(field.name)}
+                        onChange={(value: number) => {
+                          form.setFieldValue(field.name, value);
+                        }}
+                        className={clsx(
+                          'input-select',
+                          isError && 'input-select--error'
+                        )}
+                      />
+                    </div>
+                  );
+                }}
               </Field>
 
               <Button className='new-client-btn'>
@@ -214,7 +228,7 @@ const Ganeral: FC = () => {
             </div>
             <div className='wrapper-input'>
               <h4 className='input-title'>
-                Project Name*
+                Project Name<span className='required'>*</span>
               </h4>
 
               <InputGroup
@@ -227,7 +241,7 @@ const Ganeral: FC = () => {
             </div>
             <div className='wrapper-input'>
               <h4 className='input-title'>
-                Project Code<sup>*</sup>
+                Project Code<span className='required'>*</span>
               </h4>
 
               <InputGroup
@@ -240,7 +254,7 @@ const Ganeral: FC = () => {
             </div>
             <div className='wrapper-input'>
               <h4 className='input-title'>
-                Dates*
+                Dates<span className='required'>*</span>
               </h4>
 
               <Field name='dates'>
@@ -259,6 +273,7 @@ const Ganeral: FC = () => {
                       onChange={(values) => {
                         handleDatesChange(values, field, setFieldValue);
                       }} />
+                    {/* Giữ lại ErrorMessage của Formik cho Dates nếu cần hiển thị lỗi bên dưới */}
                     <ErrorMessage component='div' className='dates-message-error' name={field.name} />
                   </div>
                 )}
@@ -296,7 +311,7 @@ const Ganeral: FC = () => {
             </div>
             <div className='wrapper-input'>
               <h4 className='input-title'>
-                Project Type*
+                Project Type
               </h4>
               <div className='wrapper-project-type'>
                 {projectType.length > 0 &&

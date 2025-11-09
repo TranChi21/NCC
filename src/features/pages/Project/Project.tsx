@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import type { FC } from 'react';
 import './Project.scss';
 import { Button, Select, Input as Search, InputRef } from 'antd';
@@ -10,17 +10,17 @@ import ProjectItem from './components/ProjectItem/ProjectItem';
 import sortProject from '../../../utils/sortProject';
 import { SearchOutlined } from '@ant-design/icons';
 import { EProjectStatus, EProjectStatusTitle } from '../../../enums/enums';
-import { AppContext } from '../../../context/AppContext';
 import FormTabs from './Forms/FormTabs/FormTabs';
 import { getAllProject, getProjectQuantity } from '../../../redux/ThunkFunction/ThunkFunction';
+import { useAppContext } from '../../../hooks/useAppContext';
 
 const Project: FC = () => {
   const dispatch = useAppDispatch();
   const { allProject, projectQuantity } = useAppSelector(selectProjectStore);
   const [filterSelected, setFilterSelected] = useState(EProjectStatus.ACTIVE);
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState<string>('');
   const inputSearchRef = useRef<InputRef | null>(null);
-  const { setIsOpen, setModalContent } = useContext(AppContext);
+  const { setIsOpen, setModalContent } = useAppContext()
 
   const optionCanSelect = useMemo(() => {
     return [

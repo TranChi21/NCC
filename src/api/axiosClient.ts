@@ -30,7 +30,6 @@ axiosClient.interceptors.response.use(
   },
   async (error: AxiosError): Promise<AxiosError> => {
     const status = error.response?.status;
-
     switch (status) {
       case 401: {
         window.location.href = ERoute.LOGIN;

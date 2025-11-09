@@ -3,13 +3,13 @@ import type { FC } from 'react';
 import { Divider as ADivider, Modal as AModal, ModalProps } from 'antd';
 
 import Button from '../Button/Button';
-import { AppContext } from '../../context/AppContext';
 
 import './Modal.scss';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { useNavigate } from 'react-router-dom';
 import ERoute from '../../router/RouterLink';
 import { deleteUserSelected, selectProjectStore } from '../../redux/slice/ProjectSlice';
+import { useAppContext } from '../../hooks/useAppContext';
 
 export interface IModalContent {
   title: string
@@ -24,7 +24,7 @@ const Modal: FC<IModalProps> = ({ modalContent, isOpen, ...rest }) => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { setIsOpen, formRef } = React.useContext(AppContext);
+  const { setIsOpen, formRef } = useAppContext()
   const {
     createProject: {
       isLoading
