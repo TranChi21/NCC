@@ -7,21 +7,15 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:react/recommended',
-    'standard-with-typescript'
+    'standard-with-typescript',
+    'prettier'
   ],
-  overrides: [
-  ],
+  overrides: [],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
     project: ['./tsconfig.json']
   },
-  plugins: [
-    'react'
-  ],
-  rules: {
-    indent: ['error', 2, { SwitchCase: 1 }],
-    semi: ['error', 'always'],
-    '@typescript-eslint/semi': 'off'
-  }
+  plugins: ['react'],
+  rules: {}
 };

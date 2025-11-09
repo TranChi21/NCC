@@ -16,8 +16,7 @@ export interface IAppModal {
 interface IAppProviderProps {
   children: React.ReactNode
 }
-// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-export const AppContext = createContext<IAppModal>({} as IAppModal);
+export const AppContext = createContext<IAppModal | null>(null);
 
 const AppProvider: FC<IAppProviderProps> = ({ children }) => {
   const { isOpen, setIsOpen, modalContent, setModalContent } = useModal();
